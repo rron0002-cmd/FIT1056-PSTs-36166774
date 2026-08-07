@@ -1,4 +1,5 @@
 # FIT1056-PSTs-36166774
+
 My individual FIT1056 PSTs and Python practice
 
 PST1
@@ -22,4 +23,13 @@ Core Helper Functions:
 
 -find_students(term -> string): Finds students by name.
 
--find_teachers(term -> string): Finds students by name.
+-find_teachers(term -> string): Finds teachers by name.
+
+Front Desk Functions:
+-find_student_by_id(student_id -> int): A new helper to find one student in the database by their exact ID. Used for enroling existing student (see option 2 via menu)
+
+-front_desk_register(name -> string, instrument -> string): creates a new student object, stores it in student_db, increments next_student_id, and immediately enrols the student in the requested instrument.
+
+-front_desk_enrol(student_id -> int, instrument -> string): uses find_student_by_id(student_id) to locate the student; if found, appends the instrument to their enrolled_in list, otherwise prints an error.
+
+-front_desk_lookup(term -> string): function to search everything via find_students/find_teachers functions. test via option 3 of menu.

@@ -70,23 +70,31 @@ def remove_student(student_id):
     # If found, use the .remove() method on the list to delete it.
     # A list comprehension is a clean way to do this:
     # app_data['students'] = [s for s in app_data['students'] if s['id'] != student_id]
-    for student in app_data['students']:
-        if student['id'] == student_id:
-            app_data.remove(student)
-            print(f"Student {student_id} removed.")
-            return
-        else:
-            print(f"Error: Student with ID {student_id} not found.")
+    original_len = len(app_data['students'])
+    
+    app_data['students'] = [
+        s for s in app_data['students'] 
+        if s['id'] != student_id
+    ]
+
+    if len(app_data['students']) < original_len:
+        print(f"Student {student_id} removed.")
+    else:
+        print(f"Error: Student with ID {student_id} not found.")
 
 def remove_teacher(teacher_id):
     """Removes a teacher from the data store."""
-    for teacher in app_data['teacher']:
-        if teacher['id'] == teacher_id:
-            app_data.remove(teacher)
-            print(f"Teacher {teacher_id} removed.")
-            return
-        else:
-            print(f"Error: Teacher with ID {teacher_id} not found.")
+    original_len = len(app_data['teachers'])
+    
+    app_data['teachers'] = [
+        t for t in app_data['teachers']
+        if t['id'] != teacher_id
+    ]
+
+    if len(app_data['teachers']) < original_len:
+        print(f"Teacher {teacher_id} removed.")
+    else:
+        print(f"Error: Teacher with ID {teacher_id} not found.")
 
 def update_student(student_id, **fields):
     """Finds a student by ID and updates their data with provided fields."""
@@ -142,3 +150,142 @@ def print_student_card(student_id):
         print(f"Printed student card to {filename}.")
     else:
         print(f"Error: Could not print card, student {student_id} not found.")
+
+def front_desk_register(name, instrument):
+    """Registers a new student and immediately enrols them."""
+    student_id = app_data["next_student_id"]
+
+    new_student = {
+        "id": student_id,
+        "name": name,
+        "enrolled_in": [instrument]
+    }
+
+    app_data["students"].append(new_student)
+    app_data["next_student_id"] += 1
+
+    print(f"Front Desk: Registered '{name}' and enrolled them in '{instrument}'.")
+
+def front_desk_enrol(student_id, instrument):
+    """Enrol an existing student in a new instrument."""
+    for student in app_data["students"]:
+        if student["id"] == student_id:
+            student.setdefault("enrolled_in", []).append(instrument)
+            print(f"Front Desk: Enrolled student {student_id} in '{instrument}'.")
+            return
+
+    print(f"Error: Student ID {student_id} not found.")
+
+def find_student_by_id(student_id):
+    for student in app_data["students"]:
+        if student["id"] == student_id:
+            return student
+    return None
+
+def find_students(term):
+    print(f"\n--- Students matching '{term}' ---")
+    results = [
+        s for s in app_data["students"]
+        if term.lower() in s["name"].lower()
+    ]
+
+    if not results:
+        print("No match found.")
+        return
+
+    for s in results:
+        print(f"ID: {s['id']}, Name: {s['name']}, Enrolled: {s.get('enrolled_in', [])}")
+
+def find_teachers(term):
+    print(f"\n--- Teachers matching '{term}' ---")
+    results = [
+        t for t in app_data["teachers"]
+        if term.lower() in t["name"].lower() or term.lower() in t["speciality"].lower()
+    ]
+
+    if not results:
+        print("No match found.")
+        return
+
+    for t in results:
+        print(f"ID: {t['id']}, Name: {t['name']}, Speciality: {t['speciality']}")
+
+def front_desk_lookup(term):
+    print(f"\n--- Lookup for '{term}' ---")
+    find_students(term)
+    find_teachers(term)
+
+# --- Main Application Loop ---
+def main():
+    """Main function to run the MSMS application."""
+    load_data() # Load all data from file at startup.
+
+    while True:
+        print("\n===== MSMS v2 (Persistent) =====")
+        print("1. Register New Student")
+        print("2. Enrol Existing Student")
+        print("3. Check-in Student")
+        print("4. Print Student Card")
+        print("5. Update Teacher Info")
+        print("6. Remove Student")
+        print("7. Lookup Student or Teacher")
+        print("q. Quit and Save")
+        
+        choice = input("Enter your choice: ")
+        
+        made_change = False # A flag to track if we need to save
+        if choice == '1':
+            # TODO: Get student_id and course_id from user, then call check_in().
+            student_id = int(input("Enter student ID: "))
+            course_id = input("Enter course ID: ")
+            check_in(student_id, course_id)
+            made_change = True
+        elif choice == '2':
+            student_id = int(input("Enter student ID: "))
+            instrument = input("Enter instrument to enrol in: ")
+            front_desk_enrol(student_id, instrument)
+            print_student_card(student_id)
+        elif choice == '3':
+            student_id = int(input("Enter student ID: "))
+            course_id = input("Enter course ID: ")
+            check_in(student_id, course_id)
+            made_change = True
+        elif choice == '4':
+            student_id = int(input("Enter student ID: "))
+            print_student_card(student_id)
+            made_change = True
+        elif choice == '5':
+            teacher_id = int(input("Enter teacher ID: "))
+            new_name = input("Enter new name (leave blank to skip): ").strip()
+            new_speciality = input("Enter new speciality (leave blank to skip): ").strip()
+
+            fields = {}
+            if new_name:
+                fields["name"] = new_name
+            if new_speciality:
+                fields["speciality"] = new_speciality
+
+            update_teacher(teacher_id, **fields)
+            made_change = True
+        elif choice == '6':
+            student_id = int(input("Enter student ID: "))
+            remove_student(student_id)
+            made_change = True
+        elif choice == '7':
+            term = input("Enter search term: ")
+            front_desk_lookup(term)
+
+        
+        elif choice.lower() == 'q':
+            print("Saving final changes and exiting.")
+            break
+        else:
+            print("Invalid choice.")    
+        if made_change:
+            save_data() # Save the data immediately after any change.
+
+    save_data() # One final save on exit.
+
+# --- Program Start ---
+if __name__ == "__main__":
+    main()

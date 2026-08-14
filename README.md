@@ -33,3 +33,25 @@ Front Desk Functions:
 -front_desk_enrol(student_id -> int, instrument -> string): uses find_student_by_id(student_id) to locate the student; if found, appends the instrument to their enrolled_in list, otherwise prints an error.
 
 -front_desk_lookup(term -> string): function to search everything via find_students/find_teachers functions. test via option 3 of menu.
+
+PST2
+Files Added and implemented: pst2_main.py, Fragment2_2.py, Fragment2_3.py, Fragment2_4.py
+Date last edited: 14/08/2026
+
+Changes:
+Shift from object-oriented memory into dictionary type memory storage
+Store data through json file
+
+add_teacher()
+
+update_teacher()
+
+remove_teacher()
+
+remove_student()
+
+update_student()
+
+check_in() records attendance with timestamps.
+
+print_student_card() generates a text badge.

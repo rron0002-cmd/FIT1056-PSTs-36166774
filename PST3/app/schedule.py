@@ -70,39 +70,100 @@ class ScheduleManager:
         with open(self.data_path, 'w') as f:
             json.dump(data_to_save, f, indent=4)
 
-    # ... inside the ScheduleManager class ...
-import datetime
+    def get_lessons_by_day(self, day):
+        """Returns all lessons scheduled for a given day."""
+        lessons_for_day = []
 
-def check_in(self, student_id, course_id):
-    """Records a student's attendance for a course after validation."""
-    # This implementation remains the same, but it will now function correctly.
-    student = self.find_student_by_id(student_id)
-    course = self.find_course_by_id(course_id)
-    
-    if not student or not course:
-        print("Error: Check-in failed. Invalid Student or Course ID.")
-        return False
+        # Loop through all courses and their lessons
+        for course in self.courses:
+            for lesson in course.lessons:
+                if lesson.get("day", "").lower() == day.lower():
+                    # Include course_id so the view can display course info
+                    lesson_copy = lesson.copy()
+                    lesson_copy["course_id"] = course.id
+                    lessons_for_day.append(lesson_copy)
+
+        return lessons_for_day
+
+        # ... inside the ScheduleManager class ...
+    import datetime
+
+    def check_in(self, student_id, course_id):
+        """Records a student's attendance for a course after validation."""
+        # This implementation remains the same, but it will now function correctly.
+        student = self.find_student_by_id(student_id)
+        course = self.find_course_by_id(course_id)
         
-    timestamp = datetime.datetime.now().isoformat()
-    check_in_record = {"student_id": student_id, "course_id": course_id, "timestamp": timestamp}
+        if not student or not course:
+            print("Error: Check-in failed. Invalid Student or Course ID.")
+            return False
+            
+        timestamp = datetime.datetime.now().isoformat()
+        check_in_record = {"student_id": student_id, "course_id": course_id, "timestamp": timestamp}
+        
+        # This line will now work without causing an AttributeError.
+        self.attendance_log.append(check_in_record)
+        self._save_data() # This will now correctly save the attendance log.
+        print(f"Success: Student {student.name} checked into {course.name}.")
+        return True
+
+    # TODO: Also implement find_student_by_id and find_course_by_id helper methods.
+    def find_student_by_id(self, student_id):
+        """Finds and returns a StudentUser object by its ID."""
+        for student in self.students:
+            if student.id == student_id:
+                return student
+        return None
+
+    def find_course_by_id(self, course_id):
+        """Finds and returns a Course object by its ID."""
+        for course in self.courses:
+            if course.id == course_id:
+                return course
+        return None
+
+    def list_students(self):
+        """Returns a list of all students."""
+        return self.students
+
+    def list_teachers(self):
+        """Returns a list of all teachers."""
+        return self.teachers
+
+    def find_teacher_by_id(self, teacher_id):
+        for teacher in self.teachers:
+            if teacher.id == teacher_id:
+                return teacher
+            return None
+
+    def remove_student(self, student_id):
+        """Removes a student and updates courses accordingly."""
+        student = self.find_student_by_id(student_id)
+        if not student:
+            return False
+
+        for course in self.courses:
+            if student_id in course.enrolled_student_ids:
+                course.enrolled_student_ids.remove(student_id)
+
+        self.students = [s for s in self.students if s.id != student_id]
+        self._save_data()
+        return True
+
+    def enrol_student_in_course(self, student_id, course_id):
+        """Enrolls a student in a course and updates both objects."""
+        student = self.find_student_by_id(student_id)
+        course = self.find_course_by_id(course_id)
+
+        if not student or not course:
+            return "Invalid student or course ID."
+
     
-    # This line will now work without causing an AttributeError.
-    self.attendance_log.append(check_in_record)
-    self._save_data() # This will now correctly save the attendance log.
-    print(f"Success: Student {student.name} checked into {course.name}.")
-    return True
+        if course_id in student.enrolled_course_ids:
+            return f"{student.name} is already enrolled in {course.name}."
 
-# TODO: Also implement find_student_by_id and find_course_by_id helper methods.
-def find_by_id(self, student_id):
-    """Finds and returns a StudentUser object by its ID."""
-    for student in self.students:
-        if student.id == student_id:
-            return student
-    return None
+        student.enrolled_course_ids.append(course_id)
+        course.enrolled_student_ids.append(student_id)
 
-def find_course_by_id(self, course_id):
-    """Finds and returns a Course object by its ID."""
-    for course in self.courses:
-        if course.id == course_id:
-            return course
-    return None
+        self._save_data()
+        return f"{student.name} successfully enrolled in {course.name}."

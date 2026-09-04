@@ -55,3 +55,16 @@ update_student()
 check_in() records attendance with timestamps.
 
 print_student_card() generates a text badge.
+
+PST3
+Files Added and implemented: (app --> schedule.py, student.py, teacher.py, user.py) (data -->msms.json) Fragment3_3,py, main.py
+Date last edited 4/09/2026
+
+Changes:
+Shift into object oriented program. Classes for student, teacher and courses as well as Schedule Manager Class with main functions
+
+load_data()
+save_data()
+get_lessons_by_day()
+check_in()
+enrol_student_in_course()
